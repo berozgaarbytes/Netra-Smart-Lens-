@@ -1,68 +1,56 @@
-/* style.css */
 body {
     margin: 0;
-    padding: 0;
-    background-color: #121212; /* Dark background for high contrast */
-    color: #FFFFFF;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #000;
+    font-family: sans-serif;
+    color: white;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
+}
+
+#vision-viewport {
+    position: relative; /* This is the anchor */
+    width: 100vw;
+    height: 75vh;
     overflow: hidden;
 }
 
-#container {
-    position: relative;
-    width: 100%;
-    max-width: 640px;
-    text-align: center;
-}
-
-h1 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-    color: #00E676; /* Bright green for visibility */
-}
-
 #webcam {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-radius: 12px;
-    border: 2px solid #333;
-    background-color: #000;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1; /* Video stays back */
 }
 
 #overlay {
     position: absolute;
-    top: 50px; /* Adjust based on H1 height */
+    top: 0;
     left: 0;
     width: 100%;
-    height: auto;
-    pointer-events: none; /* Allows clicking the button through the canvas */
+    height: 100%;
+    z-index: 10; /* Canvas stays front */
+    pointer-events: none;
+}
+
+#color-preview {
+    width: 100%;
+    height: 10px;
+    background: #333;
 }
 
 #startBtn {
+    position: fixed;
+    bottom: 20px;
     width: 90%;
-    padding: 20px;
-    margin-top: 20px;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #000;
-    background-color: #00E676;
+    padding: 25px;
+    background: #00E676;
+    color: black;
     border: none;
     border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
-    transition: transform 0.1s;
-}
-
-#startBtn:active {
-    transform: scale(0.95);
-    background-color: #00C853;
-}
-
-#status {
-    margin-top: 15px;
-    font-style: italic;
-    color: #AAA;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 100;
 }
