@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Eye Lens - Blind Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Eye Lens - Vibrance Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs" type="module"></script>
 </head>
 <body>
     <div id="container">
-        <h1>Smart Eye Lens</h1>
-        <div id="viewfinder">
+        <h1 class="logo">Smart Eye Lens</h1>
+        <div id="color-preview"></div> <div id="vision-viewport">
             <video id="webcam" autoplay playsinline muted></video>
             <canvas id="overlay"></canvas>
         </div>
-        
-        <button id="startBtn">TAP TO ENABLE VOICE & START</button>
-        <div id="status">Ready for Voice Activation</div>
+        <button id="startBtn">START COLOR VISION</button>
+        <div id="status">Touch to see the colors of the world</div>
     </div>
     <script type="module" src="script.js"></script>
 </body>
