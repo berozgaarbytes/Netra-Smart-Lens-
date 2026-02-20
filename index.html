@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Eye Lens - AI Assistant</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.webgpu.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Eye Lens v2</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs" type="module"></script>
 </head>
 <body>
-    <div id="container">
-        <h1>Smart Eye Lens</h1>
-        <video id="webcam" autoplay playsinline muted></video>
-        <canvas id="overlay"></canvas>
-        
-        <button id="startBtn">START SMART LENS</button>
-        <div id="status">System Offline</div>
-    </div>
-    <script src="script.js"></script>
+  <div id="container">
+    <h1>Smart Eye Lens</h1>
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <button id="startBtn">START SMART LENS</button>
+    <div id="status">System Ready</div>
+  </div>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
