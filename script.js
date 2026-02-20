@@ -8,16 +8,22 @@ const startBtn = document.getElementById("startBtn");
 
 let detector;
 let lastVideoTime = -1;
-let audioCtx;
+let lastSceneDescriptionTime = 0;
+let currentDetections = [];
 
-// Average widths for distance estimation (meters)
-const REAL_WIDTHS = { "person": 0.5, "car": 1.8, "bicycle": 0.6, "chair": 0.5 };
+const REAL_WIDTHS = { "person": 0.5, "car": 1.8, "bicycle": 0.6, "chair": 0.5, "bottle": 0.08 };
+
+// --- AUDIO PRIMING FOR IOS ---
+function primeAudio() {
+    // Speak a silent or short message to "unlock" the audio channel in Safari
+    const utter = new SpeechSynthesisUtterance("Voice engine activated.");
+    utter.volume = 0.1; 
+    window.speechSynthesis.speak(utter);
+}
 
 async function init() {
-    status.innerText = "Initializing Spatial AI...";
-    
-    // Setup Audio Context for 3D Sound
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    primeAudio(); // This must be inside the click event!
+    status.innerText = "Loading Vision...";
     
     const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -32,13 +38,13 @@ async function init() {
         runningMode: "VIDEO"
     });
 
-    status.innerText = "System Active";
+    status.innerText = "Smart Lens Running";
     startCamera();
 }
 
 async function startCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: 640, height: 480 }
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
     });
     video.srcObject = stream;
     video.addEventListener("loadeddata", () => {
@@ -52,68 +58,49 @@ async function predict() {
     if (video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
         const result = detector.detectForVideo(video, performance.now());
-        processDetections(result.detections);
+        currentDetections = result.detections;
+        processScene();
     }
     window.requestAnimationFrame(predict);
 }
 
-function processDetections(detections) {
+function processScene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let foundObjects = [];
 
-    detections.forEach(det => {
-        const { originX, originY, width, height } = det.boundingBox;
+    currentDetections.forEach(det => {
+        const { originX, width } = det.boundingBox;
         const label = det.categories[0].categoryName;
+        const distance = ((REAL_WIDTHS[label] || 0.5) * 550) / width;
         
-        // 1. Distance Calculation
-        const distance = ( (REAL_WIDTHS[label] || 0.5) * 550) / width;
-        
-        // 2. Spatial Mapping (Normalize X to -1.0 [Left] to 1.0 [Right])
-        const centerX = originX + (width / 2);
-        const panValue = (centerX / canvas.width) * 2 - 1;
+        foundObjects.push(label);
 
-        // 3. Visuals
-        ctx.strokeStyle = distance < 2 ? "#FF0000" : "#00FF00";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(originX, originY, width, height);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.fillText(`${label} ${distance.toFixed(1)}m`, originX, originY - 10);
-
-        // 4. Feedback (Audio + Haptics)
-        if (distance < 4) {
-            triggerSpatialAlert(label, distance, panValue);
+        // Immediate Collision Warning (Higher Priority)
+        if (distance < 1.5) {
+            speak(`Warning: ${label} very close, ${distance.toFixed(1)} meters.`);
         }
     });
+
+    // Scene Narrator (Describes surrounding every 8 seconds)
+    const now = Date.now();
+    if (now - lastSceneDescriptionTime > 8000 && foundObjects.length > 0) {
+        const uniqueObjects = [...new Set(foundObjects)];
+        speak(`In front of you, I see: ${uniqueObjects.join(", ")}.`);
+        lastSceneDescriptionTime = now;
+    }
 }
 
-let speaking = false;
-function triggerSpatialAlert(label, dist, pan) {
-    if (speaking) return;
-    speaking = true;
-
-    // --- Haptic Feedback ---
-    // Short pulse for warning, long pulse for danger
-    if (navigator.vibrate) {
-        const pulse = dist < 1.5 ? [200, 50, 200] : 100;
-        navigator.vibrate(pulse);
-    }
-
-    // --- Spatial Audio ---
-    const utterance = new SpeechSynthesisUtterance(`${label} ${dist.toFixed(1)} meters`);
+let isSpeaking = false;
+function speak(text) {
+    if (isSpeaking) return;
+    isSpeaking = true;
     
-    // We use a StereoPannerNode to move the voice
-    const panner = audioCtx.createStereoPanner();
-    panner.pan.value = pan; 
-    panner.connect(audioCtx.destination);
-    
-    // Note: SpeechSynthesis doesn't natively connect to Web Audio nodes easily, 
-    // so in 2026 we use the 'pan' property if supported or simple volume scaling.
-    window.speechSynthesis.speak(utterance);
-    
-    utterance.onend = () => setTimeout(() => speaking = false, 3000);
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.onend = () => { isSpeaking = false; };
+    window.speechSynthesis.speak(msg);
 }
 
 startBtn.onclick = () => {
-    if (audioCtx) audioCtx.resume();
     init();
     startBtn.style.display = "none";
 };
